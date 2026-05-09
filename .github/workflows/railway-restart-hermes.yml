@@ -43,16 +43,26 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
+      - name: Show Railway CLI version
+        run: railway --version
+
+      - name: Check Railway access
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          railway status --json || railway service status --json || true
+
       - name: Restart Hermes
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           RESTART_REASON: ${{ inputs.reason }}
         run: |
+          set -x
           echo "Restarting service '$RAILWAY_SERVICE' in environment '$RAILWAY_ENVIRONMENT'."
           if [ -n "$RESTART_REASON" ]; then
             echo "Reason: $RESTART_REASON"
           fi
-          railway restart --service "$RAILWAY_SERVICE" --environment "$RAILWAY_ENVIRONMENT" --yes
+          railway restart --service "$RAILWAY_SERVICE" -e "$RAILWAY_ENVIRONMENT" --yes
 
       - name: Show service status
         env:
