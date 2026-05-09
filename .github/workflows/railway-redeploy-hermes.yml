@@ -16,6 +16,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
   RAILWAY_SERVICE: hermes
   RAILWAY_ENVIRONMENT: production
 
@@ -24,13 +25,20 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - name: Checkout code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
-
       - name: Set up Node.js
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        uses: actions/setup-node@v5
         with:
-          node-version: 20
+          node-version: 24
+
+      - name: Validate Railway token
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: |
+          if [ -z "$RAILWAY_TOKEN" ]; then
+            echo "Missing repository secret RAILWAY_TOKEN." >&2
+            echo "Add it in GitHub: Settings > Secrets and variables > Actions." >&2
+            exit 1
+          fi
 
       - name: Install Railway CLI
         run: npm install -g @railway/cli
@@ -40,7 +48,6 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
           REDEPLOY_REASON: ${{ inputs.reason }}
         run: |
-          test -n "$RAILWAY_TOKEN"
           echo "Redeploying service '$RAILWAY_SERVICE' in environment '$RAILWAY_ENVIRONMENT'."
           if [ -n "$REDEPLOY_REASON" ]; then
             echo "Reason: $REDEPLOY_REASON"
