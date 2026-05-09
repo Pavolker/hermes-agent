@@ -1,0 +1,53 @@
+name: Railway Restart Hermes
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Optional note about why Hermes is being restarted
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: railway-hermes-ops
+  cancel-in-progress: false
+
+env:
+  RAILWAY_SERVICE: hermes
+  RAILWAY_ENVIRONMENT: production
+
+jobs:
+  restart:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: 20
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Restart Hermes
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RESTART_REASON: ${{ inputs.reason }}
+        run: |
+          test -n "$RAILWAY_TOKEN"
+          echo "Restarting service '$RAILWAY_SERVICE' in environment '$RAILWAY_ENVIRONMENT'."
+          if [ -n "$RESTART_REASON" ]; then
+            echo "Reason: $RESTART_REASON"
+          fi
+          railway restart --service "$RAILWAY_SERVICE" --environment "$RAILWAY_ENVIRONMENT" --yes
+
+      - name: Show service status
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway service status --json
