@@ -62,7 +62,20 @@ jobs:
           if [ -n "$RESTART_REASON" ]; then
             echo "Reason: $RESTART_REASON"
           fi
-          railway restart --service "$RAILWAY_SERVICE" --yes
+          set +e
+          output="$(railway restart --service "$RAILWAY_SERVICE" --yes 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [ $status -eq 0 ]; then
+            exit 0
+          fi
+          if printf '%s' "$output" | grep -q "Deployment is not restartable"; then
+            echo "Latest deployment is not restartable; falling back to redeploy."
+            railway redeploy --service "$RAILWAY_SERVICE" --yes
+            exit 0
+          fi
+          exit $status
 
       - name: Show service status
         env:
