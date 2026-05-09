@@ -62,7 +62,7 @@ jobs:
           if [ -n "$RESTART_REASON" ]; then
             echo "Reason: $RESTART_REASON"
           fi
-          railway restart --service "$RAILWAY_SERVICE" -e "$RAILWAY_ENVIRONMENT" --yes
+          railway restart --service "$RAILWAY_SERVICE" --yes
 
       - name: Show service status
         env:

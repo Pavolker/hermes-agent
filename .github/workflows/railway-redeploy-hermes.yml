@@ -62,7 +62,7 @@ jobs:
           if [ -n "$REDEPLOY_REASON" ]; then
             echo "Reason: $REDEPLOY_REASON"
           fi
-          railway redeploy --service "$RAILWAY_SERVICE" -e "$RAILWAY_ENVIRONMENT" --yes
+          railway redeploy --service "$RAILWAY_SERVICE" --yes
 
       - name: Show service status
         env:
