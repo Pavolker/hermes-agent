@@ -80,4 +80,5 @@ jobs:
       - name: Show service status
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway service status --json
+        run: |
+          railway service status --json || railway status --json || true
